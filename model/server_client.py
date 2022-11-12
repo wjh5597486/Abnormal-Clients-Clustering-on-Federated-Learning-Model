@@ -8,9 +8,15 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 class Server:
+    """
+    <Global Server>
+
+    pretrain: In the first round, it makes more accurate the clustering.
+    """
+
     def __init__(self, model, train_data, test_data,
                  num_pos_flags, num_neg_flags, num_clients,
-                 noise_rate=0.8):
+                 noise_rate=0.8, pretrain=1):
 
         self.model = model.to(device)
         self.train_data = train_data
@@ -30,6 +36,9 @@ class Server:
         self.valid_model_result = None
 
         self.filtered_list = None
+
+        if pretrain:
+            self.pre_train(epoch=pretrain)
 
     def asked_model(self):
         return self.model.state_dict()
@@ -78,7 +87,6 @@ class Server:
         for i in range(self.num_clients):
             self.valid_model_result[i] = torch.argmax(result_list[i])
 
-
     def update_model(self, filter=True):
         cnt = 0
         updated_list = []
@@ -109,6 +117,15 @@ class Server:
 
     def get_filtered_list(self):
         return self.filtered_list
+
+    def pre_train(self, epoch=1):
+        for i in range(epoch):
+            for train_data in self.train_data:
+                model_method.train_model(model=self.model,
+                                         train_data=train_data,
+                                         epoch=1,
+                                         noise_rate=False,
+                                         device=device)
 
 
 class Client:
