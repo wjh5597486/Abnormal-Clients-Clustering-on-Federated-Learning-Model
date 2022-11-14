@@ -25,6 +25,5 @@ def KNN_clustering(k: int, flags: list, flags_class: list, test_cases: list, num
             class_list[flags_class[idx]] += 1
 
         result_list[idx_case] = class_list
-        # result_list[idx_case] = class_list.index(max(class_list))
 
     return result_list
